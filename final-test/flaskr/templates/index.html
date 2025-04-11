@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name = "viewport" content="width=device-width, initial-scale=1.0">
+        <title>Will's Notes Summary</title>
+        <style> /* CSS Design */
+            body{
+                font-family: Arial,sans-serif;
+                margin: 0;
+                padding: 0;
+            }
+            header{
+                background: #333;
+                color: #fff;
+                text-align: center;
+                padding: 10px ;
+            }
+            main{
+                max-width: 800px;
+                margin: 2em auto;
+                padding: 1em;
+                background-color: gray;
+                border-radius: 8px;
+            }
+            textarea{
+                width: 770px;
+                height: 200px;
+                padding: 1em;
+                font-size: 1em;
+                border: 1px solid #ccc;
+                border-radius: 4px;
+                resize: vertical;
+            }
+            button {
+                display: inline-block;
+                margin-top: 1em;
+                padding: 0.75em 1.5em;
+                background-color: red;
+                color: white;
+                border: none;
+                 border-radius: 4px;
+                cursor: pointer;
+                font-size: 1em;
+            }
+            button:hover {
+                background-color: darkred;
+            }
+            #summary {
+                margin-top: 2em;
+                background: #e9ecef;
+                padding: 1em;
+                border-radius: 4px;
+            }
+        </style>
+    </head>
+    <body>
+        <header>
+            <h1>Will's Notes Summary</h1> <!-- Short title for webpage -->
+        </header>
+        <main> <!-- Short introduction to web application, simple explaination for how to use -->
+            <p>Welcome! This tool takes your notes to get them summarized and give you the key points. Paste your notes below and click the button to get a condensed summary.</p>
+            <label for="notesInput"><strong>Paste your meeting notes below:</strong></label>
+            <textarea id="notesInput"></textarea>
+        
+            <button onclick="summarizeNotes()">Summarize</button>
+        
+            <div id="summary" style="display:none;">
+              <h3>Summary:</h3>
+              <p id="summaryText">Loading...</p>
+            </div>
+        </main>
+        <script> /* JSON script to run OpenAI, designed by myself with help of generative AI to make it function better */
+            const OPENAI_API_KEY = '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'; 
+        
+            async function summarizeNotes() { /* Main function to summarize notes*/
+              const notes = document.getElementById("notesInput").value.trim();
+              const summaryContainer = document.getElementById("summary");
+              const summaryText = document.getElementById("summaryText");
+        
+              summaryContainer.style.display = "block";
+              summaryText.textContent = "Please Wait..."; /* Filler text while AI summarizes notes */
+        
+              try {
+                const response = await fetch("https://api.openai.com/v1/chat/completions", { /*Sending conditions to AI */
+                  method: "POST",
+                  headers: {
+                    "Content-Type": "application/json",
+                    "Authorization": `Bearer ${OPENAI_API_KEY}` /* Authentication of API KEY */
+                  },
+                  body: JSON.stringify({
+                    model: "gpt-3.5-turbo", /* OpenAI version */
+                    messages: [
+                      {
+                        role: "system",
+                        content: "You are a helpful assistant that summarizes meeting notes into clear bullet points." /* Job describtion sent to OpenAI */
+                      },
+                      {
+                        role: "user",
+                        content: notes
+                      }
+                    ],
+                  })
+                });
+        
+                const data = await response.json(); /* Creation of JSON object from AI output */
+        
+                if (data.choices && data.choices.length > 0) {
+                  const summary = data.choices[0].message.content;
+                  summaryText.textContent = summary;
+                } else {
+                  summaryText.textContent = "No summary returned."; /* Misinput catch */
+                }
+              } catch (error) {
+                console.error("Error:", error);
+                summaryText.textContent = "There was an error generating the summary."; /* Error Catch */
+              }
+            }
+          </script>
+    </body>
+</html>
